@@ -1,0 +1,31 @@
+version: 0.2
+
+env:
+  variables:
+    IMAGE_NAME: "flask-app"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 516060755778.dkr.ecr.us-east-1.amazonaws.com
+
+  build:
+    commands:
+      - echo "Starting Docker build..."
+      - ls -al  # Debug: Show the current directory contents
+      - docker build -t flask-app -f /flask-app/Dockerfile .
+      - echo "Docker build completed"
+      - docker images
+
+  post_build:
+    commands:
+      - echo "Tagging Docker image..."
+      - docker tag flask-app:latest 516060755778.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+      - echo "Pushing Docker image to ECR..."
+      - docker push 516060755778.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+      - echo "Docker image pushed successfully"
+
+artifacts:
+  files:
+    - '**/*'
